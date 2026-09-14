@@ -33,7 +33,7 @@ struct ClaudeMessage: Codable, Equatable {
 struct OutputConfig: Encodable, Equatable { let effort: String }
 
 struct ClaudeRequest: Encodable, Equatable {
-    var model: String = "claude-opus-5"
+    var model: String = "claude-sonnet-5"
     var max_tokens: Int = 16000
     var system: String
     var tools: [ToolDefinition]

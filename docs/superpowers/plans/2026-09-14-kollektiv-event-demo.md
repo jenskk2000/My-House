@@ -15,7 +15,7 @@
 - Minimum deployment target iOS 18.0. Light mode only (`.preferredColorScheme(.light)` at the root).
 - Project file is generated: edit `ios/project.yml`, run `xcodegen generate`, never hand-edit the `.xcodeproj`. The `.xcodeproj` is gitignored.
 - Secrets: `ios/Secrets.xcconfig` is gitignored and supplies `ANTHROPIC_API_KEY`. `ios/Secrets.example.xcconfig` is committed with an empty value.
-- Model ID exactly `claude-opus-5`. No date suffix. Adaptive thinking is on by default; do not send a `thinking` parameter. Send `output_config: {effort: "medium"}`.
+- Model ID exactly `claude-sonnet-5` (switched from `claude-opus-5` after the build for demo latency). No date suffix. Adaptive thinking is on by default; do not send a `thinking` parameter. Send `output_config: {effort: "medium"}`.
 - Actor identity always comes from the app (`store.currentMemberID` or the message sender), never from tool arguments or UI state passed by the model.
 - Tokens: cobalt `#0755F5`, butter `#FFF08A`, coral `#FF765B`, teal `#28B99E`, cream `#FFFCF2`, navy `#07112F`. Rounded system font, heavy headings.
 - House timezone is `Europe/Oslo`. All dates are `LocalDate` values; the seed is generated relative to today so weekday phrases resolve correctly on demo day.
