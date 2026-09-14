@@ -63,8 +63,9 @@ struct DinnerSheet: View {
     }
 
     private var cookLine: String {
-        if let cookName { return cookName == me.displayName ? "You're cooking" + (dinner?.time.map { " · \($0)" } ?? "") : "\(cookName) is cooking" + (dinner?.time.map { " · \($0)" } ?? "") }
-        return "No cook yet"
+        guard let cookName else { return "No cook yet" }
+        let timeSuffix = dinner?.time.map { " · \($0)" } ?? ""
+        return (dinner?.cookID == me.id ? "You're cooking" : "\(cookName) is cooking") + timeSuffix
     }
 
     private func choice(_ title: String, _ status: Attendance, _ color: Color) -> some View {
@@ -81,12 +82,22 @@ struct DinnerSheet: View {
         .accessibilityAddTraits(myStatus == status ? .isSelected : [])
     }
 
+    /// Names as well as avatars: the split has to be readable without decoding colours.
     private func attendanceRow(_ label: String, _ members: [Member]) -> some View {
-        HStack {
-            Text(label).font(Theme.body.bold()).frame(width: 110, alignment: .leading)
-            if members.isEmpty { Text("—").foregroundStyle(.secondary) }
-            ForEach(members) { MemberAvatar(member: $0, size: 28) }
-            Spacer()
+        HStack(alignment: .top, spacing: 8) {
+            Text(label).font(Theme.body.bold()).frame(width: 104, alignment: .leading)
+            if members.isEmpty {
+                Text("—").foregroundStyle(.secondary)
+            } else {
+                HStack(spacing: 2) {
+                    ForEach(members) { MemberAvatar(member: $0, size: 24) }
+                }
+                .accessibilityHidden(true)
+                Text(members.map(\.displayName).joined(separator: ", "))
+                    .font(Theme.body)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 8)
             Text("\(members.count)").font(Theme.body).foregroundStyle(.secondary)
         }
     }
