@@ -1,0 +1,54 @@
+name: Kollektiv
+options:
+  bundleIdPrefix: com.jenskristian
+  deploymentTarget:
+    iOS: "18.0"
+  createIntermediateGroups: true
+configFiles:
+  Debug: Secrets.xcconfig
+  Release: Secrets.xcconfig
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+    CODE_SIGNING_ALLOWED: NO
+targets:
+  Kollektiv:
+    type: application
+    platform: iOS
+    sources:
+      - path: Kollektiv
+    info:
+      path: Kollektiv/Resources/Info.plist
+      properties:
+        CFBundleDisplayName: Kollektiv
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        ANTHROPIC_API_KEY: $(ANTHROPIC_API_KEY)
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.jenskristian.kollektiv
+        INFOPLIST_KEY_UIUserInterfaceStyle: Light
+  KollektivTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: KollektivTests
+    dependencies:
+      - target: Kollektiv
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.jenskristian.kollektiv.tests
+schemes:
+  Kollektiv:
+    build:
+      targets:
+        Kollektiv: all
+        KollektivTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - KollektivTests

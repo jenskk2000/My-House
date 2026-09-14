@@ -1,0 +1,10 @@
+# Xcode
+ios/Kollektiv.xcodeproj/
+ios/*.xcworkspace/
+xcuserdata/
+DerivedData/
+*.xcuserstate
+.DS_Store
+
+# Secrets
+ios/Secrets.xcconfig
