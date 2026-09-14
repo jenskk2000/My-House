@@ -6,7 +6,6 @@ struct WeekView: View {
     @State private var weekOffset = 0
 
     var body: some View {
-        @Bindable var appState = appState
         let start = store.today.adding(days: weekOffset * 7)
         NavigationStack {
             List {
@@ -25,14 +24,17 @@ struct WeekView: View {
             .navigationTitle("Week")
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
-                    Button { weekOffset -= 1 } label: { Image(systemName: "chevron.left") }.accessibilityLabel("Previous week")
+                    Button { weekOffset = max(0, weekOffset - 1) } label: { Image(systemName: "chevron.left") }
+                        .accessibilityLabel("Previous week")
+                        .disabled(weekOffset <= 0)
                     Button("Today") { weekOffset = 0 }
                         .font(.system(.body, design: .rounded).weight(.semibold))
                         .disabled(weekOffset == 0)
-                    Button { weekOffset += 1 } label: { Image(systemName: "chevron.right") }.accessibilityLabel("Next week")
+                    Button { weekOffset = min(1, weekOffset + 1) } label: { Image(systemName: "chevron.right") }
+                        .accessibilityLabel("Next week")
+                        .disabled(weekOffset >= 1)
                 }
             }
-            .sheet(item: $appState.presentedDinnerDate) { DinnerSheet(date: $0) }
         }
     }
 

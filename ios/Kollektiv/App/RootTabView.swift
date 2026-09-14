@@ -16,5 +16,7 @@ struct RootTabView: View {
                 .tabItem { Label("Week", systemImage: "calendar") }
                 .tag(AppTab.week)
         }
+        // The only dinner sheet in the app; House, the status strip and Week all drive it.
+        .sheet(item: $appState.presentedDinnerDate) { DinnerSheet(date: $0) }
     }
 }

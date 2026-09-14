@@ -26,12 +26,18 @@ struct TaskCardView: View {
                         Button("Retry") { Task { await runner.retry(taskID: taskID) } }
                             .font(.system(.subheadline, design: .rounded).weight(.bold))
                             .buttonStyle(.borderedProminent).tint(Theme.cobalt)
+                        // A cover request created before the failure can still be accepted.
+                        if let proposal, let occ = store.occurrence(proposal.occurrenceID) {
+                            coverCard(proposal, occ)
+                        }
                     }
                     .padding(12).background(Theme.cream, in: RoundedRectangle(cornerRadius: 14))
                 default: EmptyView()
                 }
             } else if let proposal, let occ = store.occurrence(proposal.occurrenceID) {
                 coverCard(proposal, occ)
+            } else if task.state == .completed {
+                statusLine("Completed", "checkmark.circle.fill", Theme.teal)
             }
         }
     }

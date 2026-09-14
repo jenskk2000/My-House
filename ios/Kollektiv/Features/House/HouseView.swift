@@ -41,6 +41,7 @@ struct HouseView: View {
 
                     PrimaryButton(title: "Ask the house", systemImage: "sparkle") {
                         appState.composerDraft = "@House "
+                        appState.mentionHouse = true
                         appState.selectedTab = .chat
                     }
 
@@ -51,9 +52,6 @@ struct HouseView: View {
                 .padding(20)
             }
             .background(Theme.butter.ignoresSafeArea())
-            .sheet(item: $appState.presentedDinnerDate) { date in
-                DinnerSheet(date: date)
-            }
             .navigationDestination(isPresented: $appState.showChores) {
                 ChoresView()
             }

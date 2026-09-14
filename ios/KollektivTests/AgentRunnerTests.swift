@@ -7,10 +7,14 @@ final class FakeClient: AgentClient, @unchecked Sendable {
     var responses: [ClaudeResponse]
     var requests: [ClaudeRequest] = []
     var error: Error?
+    /// If set, `error` is only thrown from this call number onwards (1-based). Nil = throw on every call.
+    var errorAfter: Int?
+    private var callCount = 0
     init(responses: [ClaudeResponse]) { self.responses = responses }
     func complete(_ request: ClaudeRequest) async throws -> ClaudeResponse {
         requests.append(request)
-        if let error { throw error }
+        callCount += 1
+        if let error, callCount >= (errorAfter ?? 1) { throw error }
         return responses.removeFirst()
     }
 }
@@ -78,5 +82,36 @@ func textResponse(_ text: String) -> ClaudeResponse {
         await runner.run(taskID: task.id)
         #expect(client.requests.count <= 7)
         guard case .failed = s.task(task.id)?.state else { Issue.record("expected failed after cap"); return }
+    }
+
+    @Test func emptyReplyIsFailureNotSuccess() async {
+        let s = HouseStore(now: { Self.fixedNow })
+        let client = FakeClient(responses: [ClaudeResponse(content: .array([]), stop_reason: "max_tokens")])
+        let runner = AgentRunner(store: s, client: client)
+        let msg = s.postMessage(sender: .member("kristian"), body: "@House hi", mentionsHouse: true)
+        let task = s.createTask(initiator: "kristian", sourceMessageID: msg.id)
+        await runner.run(taskID: task.id)
+        guard case .failed = s.task(task.id)?.state else { Issue.record("expected failed"); return }
+        #expect(s.messages.filter { $0.sender == .house }.isEmpty)
+    }
+
+    @Test func failureAfterProposalKeepsProposalOnTask() async {
+        let s = HouseStore(now: { Self.fixedNow })
+        let occ = s.occurrences.first { $0.name == "Kitchen" && $0.assigneeID == "kristian" }!
+        let client = FakeClient(responses: [
+            toolUseResponse(id: "t1", name: "create_chore_proposal", input: ["kind": .string("cover"), "occurrence_id": .string(occ.id.uuidString)]),
+        ])
+        client.error = URLError(.timedOut)
+        client.errorAfter = 2
+        let runner = AgentRunner(store: s, client: client)
+        let msg = s.postMessage(sender: .member("kristian"), body: "@House ask someone to take my Saturday kitchen clean", mentionsHouse: true)
+        let task = s.createTask(initiator: "kristian", sourceMessageID: msg.id)
+
+        await runner.run(taskID: task.id)
+
+        guard case .failed(let reason) = s.task(task.id)?.state else { Issue.record("expected failed"); return }
+        #expect(s.task(task.id)?.proposalID != nil)
+        #expect(reason.contains("Already applied"))
+        #expect(s.messages.filter { $0.sender == .house }.isEmpty)
     }
 }

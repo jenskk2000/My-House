@@ -39,7 +39,12 @@ struct ChatView: View {
         }
     }
 
-    private var mentionsHouse: Bool { appState.composerDraft.localizedCaseInsensitiveContains("@House") }
+    private var mentionsHouse: Bool { appState.mentionHouse || draftHasMentionToken }
+
+    /// Case-sensitive whole-word "@House" so "@Housemates" and "@housewarming" do not match.
+    private var draftHasMentionToken: Bool {
+        appState.composerDraft.range(of: "(^|\\s)@House(\\b|$)", options: .regularExpression) != nil
+    }
 
     private var composer: some View {
         @Bindable var appState = appState
@@ -48,6 +53,7 @@ struct ChatView: View {
                 HStack {
                     Button {
                         appState.composerDraft = "@House " + appState.composerDraft
+                        appState.mentionHouse = true
                         composerFocused = true
                     } label: { Pill(text: "@House", color: .white, background: Theme.cobalt) }
                     Spacer()
@@ -64,7 +70,7 @@ struct ChatView: View {
                 } label: {
                     Image(systemName: "arrow.up.circle.fill").font(.system(size: 34)).foregroundStyle(Theme.cobalt)
                 }
-                .disabled(appState.composerDraft.trimmingCharacters(in: .whitespaces).isEmpty || isSending)
+                .disabled(appState.composerDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isSending)
                 .accessibilityLabel("Send")
             }
         }
@@ -76,6 +82,7 @@ struct ChatView: View {
         let body = appState.composerDraft.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !body.isEmpty else { return }
         let mentions = mentionsHouse
+        appState.mentionHouse = false
         appState.composerDraft = ""
         isSending = true
         await runner.send(body: body, from: store.currentMemberID, mentionsHouse: mentions)

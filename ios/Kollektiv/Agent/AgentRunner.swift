@@ -48,14 +48,26 @@ final class AgentRunner {
         var request = ClaudeRequest(system: systemPrompt(for: task.initiatorID), tools: HouseTools.definitions, messages: messages)
         var createdProposal: UUID? = nil
         var toolCalls = 0
+        /// Effects already written to the store during this run; reported back if the run later fails.
+        var committed: [String] = []
+        /// Tools that only read or ask, so they are not an "already applied" effect.
+        let nonEffectTools: Set<String> = ["read_house_context", "ask_task_question"]
+        func fail(_ reason: String) {
+            let suffix = committed.isEmpty ? "" : " Already applied: " + committed.joined(separator: " ")
+            store.updateTask(taskID) { $0.state = .failed(reason + suffix) }
+        }
 
         do {
             while true {
                 let response = try await client.complete(request)
                 let uses = response.toolUses
                 if uses.isEmpty {
-                    let text = response.text.isEmpty ? "Done." : response.text
-                    store.postMessage(sender: .house, body: text, taskID: taskID)
+                    let stop = response.stop_reason
+                    guard !response.text.isEmpty, stop != "max_tokens", stop != "refusal" else {
+                        fail("House stopped without a reply (\(stop ?? "unknown")).")
+                        return
+                    }
+                    store.postMessage(sender: .house, body: response.text, taskID: taskID)
                     store.updateTask(taskID) {
                         $0.proposalID = createdProposal
                         $0.state = createdProposal != nil ? .waitingForVolunteer : .completed
@@ -64,13 +76,18 @@ final class AgentRunner {
                 }
                 toolCalls += uses.count
                 guard toolCalls <= Self.maxToolCalls else {
-                    store.updateTask(taskID) { $0.state = .failed("House made too many tool calls and stopped.") }
+                    fail("House made too many tool calls and stopped.")
                     return
                 }
                 var results: [(toolUseID: String, content: String, isError: Bool)] = []
                 for use in uses {
                     let r = tools.execute(name: use.name, input: use.input, actor: task.initiatorID, taskID: taskID)
-                    if let p = r.createdProposalID { createdProposal = p }
+                    if let p = r.createdProposalID {
+                        createdProposal = p
+                        // Persist immediately so the cover request survives a later failure.
+                        store.updateTask(taskID) { $0.proposalID = p }
+                    }
+                    if !r.isError && !nonEffectTools.contains(use.name) { committed.append(r.content) }
                     results.append((use.id, r.content, r.isError))
                 }
                 messages.append(response.assistantMessage)
@@ -78,7 +95,7 @@ final class AgentRunner {
                 request.messages = messages
             }
         } catch {
-            store.updateTask(taskID) { $0.state = .failed(error.localizedDescription) }
+            fail(error.localizedDescription)
         }
     }
 
