@@ -26,7 +26,9 @@ struct WeekView: View {
             .toolbar {
                 ToolbarItemGroup(placement: .topBarTrailing) {
                     Button { weekOffset -= 1 } label: { Image(systemName: "chevron.left") }.accessibilityLabel("Previous week")
-                    Button("Today") { weekOffset = 0 }.disabled(weekOffset == 0)
+                    Button("Today") { weekOffset = 0 }
+                        .font(.system(.body, design: .rounded).weight(.semibold))
+                        .disabled(weekOffset == 0)
                     Button { weekOffset += 1 } label: { Image(systemName: "chevron.right") }.accessibilityLabel("Next week")
                 }
             }
@@ -40,7 +42,7 @@ struct WeekView: View {
         case .dinner(let d):
             Button { appState.presentedDinnerDate = d.date } label: {
                 HStack {
-                    Label(d.dish ?? "Dinner · not planned", systemImage: "fork.knife")
+                    Label(d.dish ?? "Dinner · not planned", systemImage: "fork.knife").font(Theme.body)
                     Spacer()
                     let split = store.attendanceSplit(on: d.date)
                     Text("\(split.eating.count) eating").font(Theme.caption).foregroundStyle(.secondary)
@@ -49,15 +51,19 @@ struct WeekView: View {
             }.foregroundStyle(Theme.navy)
         case .chore(let c):
             HStack {
-                Label(c.name, systemImage: "sparkles")
+                Label(c.name, systemImage: "sparkles").font(Theme.body)
                 Spacer()
                 if store.openProposal(forOccurrence: c.id) != nil { Pill(text: "Cover pending", color: .white, background: Theme.coral) }
-                if c.isCompleted { Image(systemName: "checkmark.circle.fill").foregroundStyle(Theme.teal) }
+                if c.isCompleted {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(Theme.teal)
+                        .accessibilityLabel("Completed")
+                }
                 if let a = c.assigneeID.flatMap(store.member) { MemberAvatar(member: a, size: 24) } else { Pill(text: "Needs someone") }
             }
         case .event(let e):
             HStack {
-                Label(e.title, systemImage: "calendar")
+                Label(e.title, systemImage: "calendar").font(Theme.body)
                 Spacer()
                 if let t = e.time { Text(t).font(Theme.caption).foregroundStyle(.secondary) }
             }

@@ -27,7 +27,7 @@ struct ChatView: View {
             .navigationTitle("House chat")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) { ChatDemoPersonMenu() }
+                ToolbarItem(placement: .topBarLeading) { DemoPersonMenu() }
                 ToolbarItem(placement: .topBarTrailing) {
                     if !runner.isConfigured {
                         Label("No API key", systemImage: "key.slash").font(Theme.caption).foregroundStyle(Theme.coral)
@@ -58,7 +58,7 @@ struct ChatView: View {
                     .lineLimit(1...4)
                     .focused($composerFocused)
                     .padding(.horizontal, 14).padding(.vertical, 10)
-                    .background(Color(white: 0.95), in: RoundedRectangle(cornerRadius: 18))
+                    .background(Theme.field, in: RoundedRectangle(cornerRadius: 18))
                 Button {
                     Task { await send() }
                 } label: {
@@ -69,7 +69,7 @@ struct ChatView: View {
             }
         }
         .padding(12)
-        .background(.white)
+        .background(Theme.card)
     }
 
     private func send() async {

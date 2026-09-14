@@ -44,7 +44,7 @@ struct MessageRow: View {
     private var bubbleColor: Color {
         switch message.sender {
         case .house: return Theme.cream
-        case .member: return isMe ? Theme.cobalt : Color(white: 0.93)
+        case .member: return isMe ? Theme.cobalt : Theme.fog
         }
     }
 

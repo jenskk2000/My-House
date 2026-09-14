@@ -24,6 +24,7 @@ struct TaskCardView: View {
                         statusLine("House couldn't finish this", "exclamationmark.triangle.fill", Theme.coral)
                         Text(reason).font(Theme.caption).foregroundStyle(.secondary)
                         Button("Retry") { Task { await runner.retry(taskID: taskID) } }
+                            .font(.system(.subheadline, design: .rounded).weight(.bold))
                             .buttonStyle(.borderedProminent).tint(Theme.cobalt)
                     }
                     .padding(12).background(Theme.cream, in: RoundedRectangle(cornerRadius: 14))
@@ -57,7 +58,9 @@ struct TaskCardView: View {
                     Button("Cancel request") {
                         do { try store.cancelCover(actor: me, proposalID: p.id); errorText = nil }
                         catch { errorText = error.localizedDescription }
-                    }.buttonStyle(.bordered).tint(Theme.coral)
+                    }
+                    .font(.system(.subheadline, design: .rounded).weight(.bold))
+                    .buttonStyle(.bordered).tint(Theme.coral)
                 } else {
                     PrimaryButton(title: "I can take it", systemImage: "hand.raised.fill") {
                         do {
@@ -68,7 +71,6 @@ struct TaskCardView: View {
                             errorText = nil
                         } catch { errorText = error.localizedDescription }
                     }
-                    statusLine("Waiting for a volunteer", "hand.raised", Theme.navy)
                 }
             case .applied:
                 statusLine("Taken by \(p.acceptedByID.flatMap { store.member($0) }?.displayName ?? "someone")", "checkmark.circle.fill", Theme.teal)
@@ -78,7 +80,7 @@ struct TaskCardView: View {
             if let errorText { Text(errorText).font(Theme.caption).foregroundStyle(Theme.coral) }
         }
         .padding(14)
-        .background(.white, in: RoundedRectangle(cornerRadius: 16))
+        .background(Theme.card, in: RoundedRectangle(cornerRadius: 16))
         .overlay(RoundedRectangle(cornerRadius: 16).stroke(Theme.navy.opacity(0.08)))
         .frame(maxWidth: 300)
     }

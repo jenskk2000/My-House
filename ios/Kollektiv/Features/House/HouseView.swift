@@ -8,7 +8,7 @@ struct HouseView: View {
         @Bindable var appState = appState
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
+                VStack(alignment: .leading, spacing: 18) {
                     HStack {
                         Text("Kollektiv").font(Theme.title(20)).foregroundStyle(Theme.navy)
                         Spacer()
@@ -21,6 +21,7 @@ struct HouseView: View {
                     Image("house")
                         .resizable().scaledToFit()
                         .frame(maxWidth: .infinity)
+                        .frame(maxHeight: 250)
                         .padding(.horizontal, 24)
                         .accessibilityHidden(true)
 

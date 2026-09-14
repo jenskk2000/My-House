@@ -41,6 +41,7 @@ struct ChoresView: View {
                             do { try store.completeChore(actor: store.currentMemberID, occurrenceID: occ.id); errorText = nil }
                             catch { errorText = error.localizedDescription }
                         }
+                        .font(.system(.subheadline, design: .rounded).weight(.bold))
                         .buttonStyle(.borderedProminent).tint(Theme.teal)
                     }
                 }

@@ -8,6 +8,11 @@ enum Theme {
     static let cream  = Color(hex: 0xFFFCF2)
     static let navy   = Color(hex: 0x07112F)
 
+    /// Neutral surfaces: received bubble, text field background, card background.
+    static let fog   = Color(white: 0.93)
+    static let field = Color(white: 0.95)
+    static let card  = Color.white
+
     static func heading(_ size: CGFloat = 40) -> Font {
         .system(size: size, weight: .heavy, design: .rounded)
     }
