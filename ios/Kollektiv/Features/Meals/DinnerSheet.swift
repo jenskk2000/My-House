@@ -17,9 +17,14 @@ struct DinnerSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    Text(date == store.today ? "Dinner tonight" : "Dinner \(date.longLabel)")
-                        .font(Theme.heading(36)).foregroundStyle(.white)
-                    Image("meals").resizable().scaledToFit().frame(height: 160).frame(maxWidth: .infinity)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(date == store.today ? "Dinner\ntonight" : "Dinner\nplans")
+                            .font(Theme.heading(50)).foregroundStyle(.white)
+                        if date != store.today {
+                            Text(date.longLabel).font(Theme.body).foregroundStyle(.white)
+                        }
+                    }
+                    Image("meals").resizable().scaledToFit().frame(height: 210).frame(maxWidth: .infinity)
                     VStack(spacing: 4) {
                         Text(dinner?.dish ?? "Not planned").font(Theme.title(26)).foregroundStyle(.white)
                         Text(cookLine).font(Theme.body).foregroundStyle(.white.opacity(0.85))
@@ -60,6 +65,8 @@ struct DinnerSheet: View {
                 ToolbarItem(placement: .topBarTrailing) { Button("Done") { dismiss() }.foregroundStyle(.white) }
             }
         }
+        .presentationDetents([.large])
+        .presentationDragIndicator(.visible)
     }
 
     private var cookLine: String {
@@ -89,10 +96,6 @@ struct DinnerSheet: View {
             if members.isEmpty {
                 Text("—").foregroundStyle(.secondary)
             } else {
-                HStack(spacing: 2) {
-                    ForEach(members) { MemberAvatar(member: $0, size: 24) }
-                }
-                .accessibilityHidden(true)
                 Text(members.map(\.displayName).joined(separator: ", "))
                     .font(Theme.body)
                     .fixedSize(horizontal: false, vertical: true)

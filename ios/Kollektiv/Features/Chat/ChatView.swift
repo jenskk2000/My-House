@@ -10,6 +10,23 @@ struct ChatView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
+                HStack(spacing: 12) {
+                    DemoPersonMenu(compact: true)
+                    Spacer(minLength: 0)
+                    VStack(spacing: 3) {
+                        Text("House chat").font(Theme.title(22))
+                        Text("\(store.members.count) housemates + House").font(Theme.caption)
+                        if !runner.isConfigured {
+                            Text("Agent not configured").font(Theme.caption)
+                        }
+                    }
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(Theme.navy)
+                    Spacer(minLength: 0)
+                    HouseAvatar(size: 52)
+                }
+                .padding(.horizontal, 16).padding(.vertical, 14)
+                .background(Theme.butter)
                 ScrollViewReader { proxy in
                     ScrollView {
                         LazyVStack(alignment: .leading, spacing: 14) {
@@ -17,25 +34,20 @@ struct ChatView: View {
                         }
                         .padding(.vertical, 12)
                     }
+                    .scrollDismissesKeyboard(.interactively)
                     .onChange(of: store.messages.count) { _, _ in
                         if let last = store.messages.last { withAnimation { proxy.scrollTo(last.id, anchor: .bottom) } }
                     }
                 }
                 composer
+                    .onChange(of: appState.replyingToTaskID) { _, id in composerFocused = id != nil }
+                    .onChange(of: store.currentMemberID) { _, _ in appState.replyingToTaskID = nil }
+
             }
             .background(Theme.cream.ignoresSafeArea())
-            .navigationTitle("House chat")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) { DemoPersonMenu() }
-                ToolbarItem(placement: .topBarTrailing) {
-                    if !runner.isConfigured {
-                        Label("No API key", systemImage: "key.slash").font(Theme.caption).foregroundStyle(Theme.coral)
-                    }
-                }
-            }
-            .toolbarBackground(Theme.butter, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbar(.hidden, for: .navigationBar)
+            .safeAreaInset(edge: .top, spacing: 0) { Color.clear.frame(height: 0) }
+            .background(Theme.butter.ignoresSafeArea(edges: .top))
         }
     }
 
@@ -49,6 +61,16 @@ struct ChatView: View {
     private var composer: some View {
         @Bindable var appState = appState
         return VStack(spacing: 8) {
+            if appState.replyingToTaskID != nil {
+                HStack {
+                    Text("Replying to House").font(Theme.caption)
+                    Spacer()
+                    Button("Cancel") { appState.replyingToTaskID = nil }
+                }
+            }
+            if composerFocused {
+                HStack { Spacer(); Button("Done") { composerFocused = false } }
+            }
             if !mentionsHouse {
                 HStack {
                     Button {
@@ -85,7 +107,13 @@ struct ChatView: View {
         appState.mentionHouse = false
         appState.composerDraft = ""
         isSending = true
-        await runner.send(body: body, from: store.currentMemberID, mentionsHouse: mentions)
+        composerFocused = false
+        if let taskID = appState.replyingToTaskID {
+            appState.replyingToTaskID = nil
+            await runner.answer(taskID: taskID, body: body, from: store.currentMemberID)
+        } else {
+            await runner.send(body: body, from: store.currentMemberID, mentionsHouse: mentions)
+        }
         isSending = false
     }
 }

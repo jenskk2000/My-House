@@ -81,7 +81,11 @@ struct HouseTools {
                 return .init(content: store.contextText(from: from, to: to), isError: false)
 
             case "set_my_attendance":
-                let dates = (input["dates"]?.arrayValue ?? []).compactMap { $0.stringValue }.compactMap(LocalDate.init(iso:))
+                let rawDates = input["dates"]?.arrayValue ?? []
+                let dates = rawDates.compactMap { $0.stringValue }.compactMap(LocalDate.init(iso:))
+                guard dates.count == rawDates.count else {
+                    return .init(content: "Every date must be a valid YYYY-MM-DD calendar date. Nothing changed.", isError: true)
+                }
                 guard let statusRaw = input["status"]?.stringValue, let status = Attendance(rawValue: statusRaw) else {
                     return .init(content: "status must be eating, away or unknown", isError: true)
                 }

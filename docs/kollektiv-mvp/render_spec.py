@@ -92,6 +92,6 @@ figure{margin:28px 0}img{display:block;width:100%;height:auto;border:1px solid #
 @media(max-width:1000px){aside{position:relative;width:auto;padding:22px}nav{display:flex;gap:16px;overflow:auto}nav a{white-space:nowrap}main{margin:0;padding:32px 22px}h1{font-size:38px}.edition{margin-bottom:10px}}
 @media print{aside{display:none}main{margin:0;padding:0;max-width:none}body{font-size:11px}h1{font-size:28px}h2{font-size:20px;break-after:avoid}h3{break-after:avoid}table{font-size:9px}figure{break-inside:avoid}a{color:inherit}img{max-height:680px;object-fit:contain}}
 '''
-document = '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Kollektiv — MVP specification</title><style>' + css + '</style></head><body><aside><div class="brand">Kollektiv.</div><div class="edition">MVP specification · v1.0</div><nav>' + nav + '</nav></aside><main>' + '\n'.join(blocks) + '</main></body></html>'
+document = '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>My House — MVP specification</title><style>' + css + '</style></head><body><aside><div class="brand">My House.</div><div class="edition">MVP specification · v1.0</div><nav>' + nav + '</nav></aside><main>' + '\n'.join(blocks) + '</main></body></html>'
 (ROOT / 'SPEC.html').write_text(document)
 print(f'Rendered {len(blocks)} blocks and {sum(x[0] == 2 for x in headings)} sections, with 6 embedded mockup boards.')

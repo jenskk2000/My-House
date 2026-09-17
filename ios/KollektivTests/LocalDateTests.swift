@@ -17,4 +17,11 @@ import Testing
         let d = LocalDate(year: 2026, month: 10, day: 24).adding(days: 1).adding(days: 1)
         #expect(d == LocalDate(year: 2026, month: 10, day: 26))
     }
+
+    @Test func rejectsImpossibleDates() {
+        for value in ["2026-02-29", "2026-02-31", "2026-04-31", "2026-9-01", "0000-01-01"] {
+            #expect(LocalDate(iso: value) == nil)
+        }
+        #expect(LocalDate(iso: "2028-02-29") != nil)
+    }
 }

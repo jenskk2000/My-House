@@ -56,4 +56,16 @@ import Testing
         let r = HouseTools(store: s).execute(name: "approve_as_sam", input: .object([:]), actor: "kristian", taskID: nil)
         #expect(r.isError == true)
     }
+
+    @Test func mixedInvalidDatesDoNotPartiallyApply() {
+        let store = HouseStore()
+        let date = store.today
+        let before = store.attendance(on: date)
+        let result = HouseTools(store: store).execute(name: "set_my_attendance", input: .object([
+            "dates": .array([.string(date.iso), .string("2026-02-31")]),
+            "status": .string("away")
+        ]), actor: "kristian", taskID: nil)
+        #expect(result.isError)
+        #expect(store.attendance(on: date) == before)
+    }
 }

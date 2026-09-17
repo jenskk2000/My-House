@@ -1,4 +1,4 @@
-# Kollektiv illustrated icons — first pass
+# My House illustrated icons — first pass
 
 Generated with the built-in imagegen tool on 14 September 2026, using the approved Our house board as a style reference.
 

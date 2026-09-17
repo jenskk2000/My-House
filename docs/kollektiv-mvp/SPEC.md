@@ -1,6 +1,8 @@
-# Kollektiv — MVP specification
+# My House — MVP specification
 
 Version 1.0 · 14 September 2026 · Product and implementation specification
+
+Naming update: the app is **My House**. The shared agent remains **@House**. Historical mockups and generation prompts retain the former Kollektiv name. Existing source paths, Xcode targets and bundle identifiers retain their technical names.
 
 **A shared house that is easy to organise. Talk normally, tag @House, and let it turn agreed intentions into accurate plans.**
 
@@ -10,7 +12,7 @@ When a mockup conflicts with the written rules below, the written rules win. The
 
 ## 1. The product decision
 
-Kollektiv combines three things:
+My House combines three things:
 
 1. **House:** a simple illustrated entrance to meals, chores, and plans.
 2. **Chat:** a normal group conversation with an organiser called **@House**.
@@ -22,7 +24,7 @@ The first users are Kristian and his housemates. Design for a small household of
 
 ### The problem we are testing
 
-A chat message such as “I’m away this weekend” often leaves several jobs for someone else: update dinner counts, remember a cleaning conflict, find a volunteer, and record the agreement. Kollektiv should perform those connected steps while keeping the commitments understandable.
+A chat message such as “I’m away this weekend” often leaves several jobs for someone else: update dinner counts, remember a cleaning conflict, find a volunteer, and record the agreement. My House should perform those connected steps while keeping the commitments understandable.
 
 **Hypothesis:** a shared organiser that reliably completes these small coordination tasks is useful enough for housemates to keep using the app.
 

@@ -5,7 +5,7 @@ import Observation
 @MainActor
 final class HouseStore {
     // MARK: Identity and clock
-    let houseName = "Kollektiv"
+    let houseName = "My House"
     @ObservationIgnored let now: () -> Date
     var today: LocalDate { LocalDate(now()) }
 

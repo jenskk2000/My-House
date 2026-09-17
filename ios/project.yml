@@ -22,7 +22,7 @@ targets:
     info:
       path: Kollektiv/Resources/Info.plist
       properties:
-        CFBundleDisplayName: Kollektiv
+        CFBundleDisplayName: My House
         UILaunchScreen: {}
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         ANTHROPIC_API_KEY: $(ANTHROPIC_API_KEY)

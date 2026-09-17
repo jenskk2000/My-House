@@ -5,6 +5,7 @@ import SwiftUI
 struct TaskCardView: View {
     @Environment(HouseStore.self) private var store
     @Environment(AgentRunner.self) private var runner
+    @Environment(AppState.self) private var appState
     let taskID: UUID
     let anchoredTo: Message
     @State private var errorText: String?
@@ -34,6 +35,12 @@ struct TaskCardView: View {
                     .padding(12).background(Theme.cream, in: RoundedRectangle(cornerRadius: 14))
                 default: EmptyView()
                 }
+            } else if case .needsInput = task.state, task.initiatorID == store.currentMemberID {
+                Button("Reply to House") {
+                    appState.replyingToTaskID = task.id
+                    appState.selectedTab = .chat
+                }
+                .buttonStyle(.borderedProminent).tint(Theme.cobalt)
             } else if let proposal, let occ = store.occurrence(proposal.occurrenceID) {
                 coverCard(proposal, occ)
             } else if task.state == .completed {
@@ -53,7 +60,7 @@ struct TaskCardView: View {
             HStack {
                 Image("chores").resizable().scaledToFit().frame(width: 40, height: 40)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("\(occ.name) · \(occ.date.longLabel)").font(Theme.body.bold())
+                    Text("\(occ.name) · \(occ.date.longLabel)").font(Theme.body.bold()).fixedSize(horizontal: false, vertical: true)
                     Text("Currently: \(assignee)").font(Theme.caption).foregroundStyle(.secondary)
                 }
             }

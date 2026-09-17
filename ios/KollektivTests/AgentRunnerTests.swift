@@ -114,4 +114,39 @@ func textResponse(_ text: String) -> ClaudeResponse {
         #expect(reason.contains("Already applied"))
         #expect(s.messages.filter { $0.sender == .house }.isEmpty)
     }
+
+    @Test func clarificationResumesSameTask() async {
+        let s = HouseStore(now: { Self.fixedNow })
+        let client = FakeClient(responses: [
+            toolUseResponse(id: "q", name: "ask_task_question", input: ["question": .string("Which day?")]),
+            textResponse("Saturday noted.")
+        ])
+        let runner = AgentRunner(store: s, client: client)
+        await runner.send(body: "@House help with dinner", from: "kristian", mentionsHouse: true)
+        let task = s.tasks.last!
+        #expect(task.state == .needsInput("Which day?"))
+        await runner.answer(taskID: task.id, body: "Saturday", from: "sam")
+        #expect(client.requests.count == 1)
+        await runner.answer(taskID: task.id, body: "Saturday", from: "kristian")
+        #expect(s.tasks.count == 1)
+        #expect(client.requests.last?.messages.count == 4)
+        #expect(s.task(task.id)?.state == .completed)
+    }
+
+    @Test func retryPreservesCommittedProposal() async {
+        let s = HouseStore(now: { Self.fixedNow })
+        let occ = s.occurrences.first { $0.assigneeID == "kristian" }!
+        let client = FakeClient(responses: [toolUseResponse(id: "p", name: "create_chore_proposal", input: ["occurrence_id": .string(occ.id.uuidString)])])
+        client.error = URLError(.timedOut); client.errorAfter = 2
+        let runner = AgentRunner(store: s, client: client)
+        await runner.send(body: "@House request cover", from: "kristian", mentionsHouse: true)
+        let task = s.tasks.last!
+        let proposalID = task.proposalID
+        client.error = nil; client.responses = [textResponse("Waiting for a volunteer.")]
+        await runner.retry(taskID: task.id)
+        #expect(s.proposals.count == 1)
+        #expect(s.task(task.id)?.proposalID == proposalID)
+        #expect(s.task(task.id)?.state == .waitingForVolunteer)
+        #expect(client.requests.last?.messages.count == 3)
+    }
 }

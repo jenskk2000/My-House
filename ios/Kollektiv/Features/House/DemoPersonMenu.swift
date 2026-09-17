@@ -3,6 +3,7 @@ import SwiftUI
 /// Clearly labelled demo-only identity switcher (spec M1). Replaced by auth in M2.
 struct DemoPersonMenu: View {
     @Environment(HouseStore.self) private var store
+    var compact = false
     var body: some View {
         Menu {
             Section("Demo person") {
@@ -17,8 +18,10 @@ struct DemoPersonMenu: View {
         } label: {
             HStack(spacing: 6) {
                 MemberAvatar(member: store.currentMember, size: 28)
-                Text("Demo: \(store.currentMember.displayName)")
-                    .font(.system(.caption, design: .rounded).weight(.bold))
+                if !compact {
+                    Text("Demo: \(store.currentMember.displayName)")
+                        .font(.system(.caption, design: .rounded).weight(.bold))
+                }
                 Image(systemName: "chevron.down").font(.caption2.bold())
             }
             .foregroundStyle(Theme.navy)

@@ -7,6 +7,17 @@ final class AgentRunner {
     let store: HouseStore
     let client: AgentClient?
     static let maxToolCalls = 6
+    @ObservationIgnored private var conversations: [UUID: [ClaudeMessage]] = [:]
+    @ObservationIgnored private var effects: [UUID: [String]] = [:]
+    @ObservationIgnored private var running: Set<UUID> = []
+
+    func answer(taskID: UUID, body: String, from sender: MemberID) async {
+        guard let task = store.task(taskID), task.initiatorID == sender,
+              case .needsInput = task.state, conversations[taskID] != nil else { return }
+        store.postMessage(sender: .member(sender), body: body)
+        conversations[taskID, default: []].append(.user(text: body))
+        await run(taskID: taskID)
+    }
 
     var isConfigured: Bool { client != nil }
 
@@ -28,11 +39,13 @@ final class AgentRunner {
     }
 
     func retry(taskID: UUID) async {
-        store.updateTask(taskID) { $0.state = .working }
+        guard case .failed = store.task(taskID)?.state else { return }
         await run(taskID: taskID)
     }
 
     func run(taskID: UUID) async {
+        guard running.insert(taskID).inserted else { return }
+        defer { running.remove(taskID) }
         guard let task = store.task(taskID),
               let source = store.messages.first(where: { $0.id == task.sourceMessageID }) else { return }
         store.updateTask(taskID) { $0.state = .working; $0.attempts += 1 }
@@ -44,12 +57,12 @@ final class AgentRunner {
 
         let tools = HouseTools(store: store)
         let sender = store.member(task.initiatorID)?.displayName ?? task.initiatorID
-        var messages: [ClaudeMessage] = [.user(text: "[\(sender)] \(source.body)")]
+        var messages: [ClaudeMessage] = conversations[taskID] ?? [.user(text: "[\(sender)] \(source.body)")]
         var request = ClaudeRequest(system: systemPrompt(for: task.initiatorID), tools: HouseTools.definitions, messages: messages)
-        var createdProposal: UUID? = nil
+        var createdProposal: UUID? = task.proposalID
         var toolCalls = 0
         /// Effects already written to the store during this run; reported back if the run later fails.
-        var committed: [String] = []
+        var committed: [String] = effects[taskID] ?? []
         /// Tools that only read or ask, so they are not an "already applied" effect.
         let nonEffectTools: Set<String> = ["read_house_context", "ask_task_question"]
         func fail(_ reason: String) {
@@ -80,8 +93,14 @@ final class AgentRunner {
                     return
                 }
                 var results: [(toolUseID: String, content: String, isError: Bool)] = []
+                var question: String?
                 for use in uses {
+                    if question != nil {
+                        results.append((use.id, "Not executed: waiting for clarification.", true))
+                        continue
+                    }
                     let r = tools.execute(name: use.name, input: use.input, actor: task.initiatorID, taskID: taskID)
+                    if r.askedQuestion { question = use.input["question"]?.stringValue ?? "Could you clarify?" }
                     if let p = r.createdProposalID {
                         createdProposal = p
                         // Persist immediately so the cover request survives a later failure.
@@ -92,6 +111,13 @@ final class AgentRunner {
                 }
                 messages.append(response.assistantMessage)
                 messages.append(.toolResults(results))
+                conversations[taskID] = messages
+                effects[taskID] = committed
+                if let question {
+                    store.postMessage(sender: .house, body: question, taskID: taskID)
+                    store.updateTask(taskID) { $0.state = .needsInput(question) }
+                    return
+                }
                 request.messages = messages
             }
         } catch {

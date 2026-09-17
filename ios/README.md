@@ -1,4 +1,6 @@
-# Kollektiv iOS (event demo)
+# My House iOS (event demo)
+
+The app display name is My House; the agent is @House. The Xcode project, scheme, source folders and bundle identifier retain Kollektiv for compatibility.
 
 1. `brew install xcodegen`
 2. `cp Secrets.example.xcconfig Secrets.xcconfig` and paste your Anthropic API key.

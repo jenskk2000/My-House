@@ -25,8 +25,14 @@ struct LocalDate: Hashable, Comparable, CustomStringConvertible, Codable {
 
     /// Parses "YYYY-MM-DD". Returns nil for anything else.
     init?(iso: String) {
+        guard iso.range(of: "^[0-9]{4}-[0-9]{2}-[0-9]{2}$", options: .regularExpression) != nil else { return nil }
         let parts = iso.split(separator: "-").compactMap { Int($0) }
         guard parts.count == 3, (1...12).contains(parts[1]), (1...31).contains(parts[2]) else { return nil }
+        guard parts[0] > 0,
+              let date = Self.calendar.date(from: DateComponents(year: parts[0], month: parts[1], day: parts[2])),
+              Self.calendar.component(.year, from: date) == parts[0],
+              Self.calendar.component(.month, from: date) == parts[1],
+              Self.calendar.component(.day, from: date) == parts[2] else { return nil }
         self.init(year: parts[0], month: parts[1], day: parts[2])
     }
 

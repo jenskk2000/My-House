@@ -6,6 +6,7 @@ enum AppTab: Hashable { case house, chat, week }
 @Observable
 @MainActor
 final class AppState {
+    var replyingToTaskID: UUID?
     var selectedTab: AppTab = .house
     var composerDraft: String = ""
     /// Set when the member explicitly tapped an "@House" affordance; cleared after sending.

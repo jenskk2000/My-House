@@ -73,12 +73,14 @@ struct Message: Identifiable, Hashable {
 
 enum TaskState: Hashable {
     case working
+    case needsInput(String)
     case waitingForVolunteer
     case completed
     case failed(String)
 
     var label: String {
         switch self {
+        case .needsInput: return "Waiting for your answer"
         case .working: return "Working"
         case .waitingForVolunteer: return "Waiting for a volunteer"
         case .completed: return "Completed"
